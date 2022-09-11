@@ -29,9 +29,20 @@ constexpr void chars() noexcept {
     static_assert(string<"test">("test"));
 }
 
+constexpr void combinators() noexcept {
+    using namespace gat::combinators;
+    static_assert(many<gat::chars::one>("").value.empty());
+    static_assert(many<gat::chars::one>("abc").value.size() == 3);
+    static_assert(!some<gat::chars::one>(""));
+    static_assert(some<gat::chars::one>("abc").value.size() == 3);
+    static_assert(!choice<gat::chars::one, gat::chars::word>(""));
+    static_assert(choice<gat::chars::one, gat::chars::end>(""));
+    static_assert(optional<gat::chars::one>(""));
+    static_assert(optional<gat::chars::one>("x"));
+}
+
 int main() {
     chars();
-    static_assert(gat::combinators::many<gat::chars::one>("").value.empty());
-    static_assert(gat::combinators::many<gat::chars::one>("abc").value.size() == 3);
+    combinators();
     std::cout << "Hello World!\n";
 }
