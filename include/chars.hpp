@@ -3,7 +3,7 @@
 
 #include "gat.hpp"
 
-#define PARSER(name) constexpr inline parser<char> name = [](std::string_view sv) noexcept -> std::vector<result<char>>
+#define PARSER(name) constexpr inline parser<char> name = [](std::string_view sv) noexcept -> result<char>
 #define BETWEEN(low, high) (low <= c && c <= high)
 #define PARSE_ONE_IF(expr) {\
     if(sv.empty())\
@@ -12,7 +12,7 @@
     if(!(expr))\
         return {};\
     sv.remove_prefix(1);\
-    return {{sv, c}};\
+    return {sv, c};\
 }
 
 namespace gat::chars {
@@ -48,12 +48,11 @@ namespace gat::chars {
 
     template<parser<char> p>
     PARSER(inv) {
-        auto res = p(sv);
-        if(!res.empty())
+        if(p(sv))
             return {};
         auto c = sv[0];
         sv.remove_prefix(1);
-        return {{sv, c}};
+        return {sv, c};
     };
 
     template<char low, char high>
@@ -62,7 +61,7 @@ namespace gat::chars {
     PARSER(end) {
         if(!sv.empty())
             return {};
-        return {{sv, 0}};
+        return {sv, '\0'};
     };
 
     PARSER(one) PARSE_ONE_IF(true);
@@ -77,12 +76,12 @@ namespace gat::chars {
     constexpr inline auto whitespace = any_of<" \n\r\t\v\f">;
 
     template<literal str>
-    constexpr inline parser<std::string_view> string = [](std::string_view sv) noexcept -> std::vector<result<std::string_view>> {
+    constexpr inline parser<std::string_view> string = [](std::string_view sv) noexcept -> result<std::string_view> {
         if(!sv.starts_with(str.value))
             return {};
         auto chars = sizeof(str.value) - 1;
         sv.remove_prefix(chars);
-        return {{sv, {str.value, chars}}};
+        return {sv, {str.value, chars}};
     };
 
 }
