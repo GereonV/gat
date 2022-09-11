@@ -1,7 +1,21 @@
+#ifndef _GAT_GAT_HPP_
+#define _GAT_GAT_HPP_
+
+#include <string_view>
+#include <vector>
+
 namespace gat {
 
-    // StringView = (Char *, Int)
-    // Parser a = StringView -> [(a, StringView)]
+    // Result a = (a, StringView)
+    template<typename ResultType>
+    struct result {
+        std::string_view remaining;
+        ResultType result;
+    };
+
+    // Parser a = StringView -> [Result a]
+    template<typename ResultType>
+    using parser = std::vector<result<ResultType>>(*)(std::string_view) noexcept;
 
     template<decltype(sizeof(char)) N>
     struct literal {
@@ -15,3 +29,4 @@ namespace gat {
 
 }
 
+#endif // _GAT_GAT_HPP_
