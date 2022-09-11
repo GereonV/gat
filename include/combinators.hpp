@@ -1,8 +1,12 @@
 #ifndef _GAT_COMBINATORS_HPP_
 #define _GAT_COMBINATORS_HPP_
 
+#include <optional>
+#include <tuple>
 #include <vector>
 #include "gat.hpp"
+
+#define COMB(name, type) constexpr inline parser<type> name = [](std::string_view sv) noexcept -> result<type>
 
 namespace gat::combinators {
 
@@ -20,7 +24,7 @@ namespace gat::combinators {
     // between<Int><Int><Parser    a   > = Parser [a]
 
     template<auto p>
-    constexpr inline parser<std::vector<result_type_t<p>>> many = [](std::string_view sv) noexcept -> result<std::vector<result_type_t<p>>> {
+    COMB(many, std::vector<result_type_t<p>>) {
         std::vector<result_type_t<p>> res;
         for(;;) {
             auto r = p(sv);
@@ -32,7 +36,7 @@ namespace gat::combinators {
     };
 
     template<auto p>
-    constexpr inline parser<std::vector<result_type_t<p>>> some = [](std::string_view sv) noexcept -> result<std::vector<result_type_t<p>>> {
+    COMB(some, std::vector<result_type_t<p>>) {
         auto r = p(sv);
         if(!r)
             return {};
@@ -46,7 +50,7 @@ namespace gat::combinators {
     };
 
     template<auto p, auto... ps>
-    constexpr inline parser<result_type_t<p>> choice = [](std::string_view sv) noexcept -> result<result_type_t<p>> {
+    COMB(choice, result_type_t<p>) {
         static_assert(sizeof...(ps));
         auto res = p(sv);
         if(!res)
@@ -54,6 +58,40 @@ namespace gat::combinators {
         return res;
     };
 
+    template<auto p>
+    COMB(optional, std::optional<result_type_t<p>>) {
+        auto res = p(sv);
+        if(!res)
+            return {sv, {}};
+        return {res.remaining, std::move(res.value)};
+    };
+
+    template<std::size_t I, typename T>
+    struct tuple_leaf {
+        T value;
+    };
+
+    template<std::size_t I, typename... T>
+    struct tuple_impl;
+
+    template<std::size_t I>
+    struct tuple_impl<I>{};
+
+    template<std::size_t I, typename Head, typename... Tail>
+    struct tuple_impl<I, Head, Tail...> : tuple_leaf<I, Head>, tuple_impl<I + 1, Tail...> {};
+
+    template<typename... Types>
+    using tuple = tuple_impl<0, Types...>;
+
+    template<auto... ps>
+    COMB(sequence, std::tuple<result_type_t<ps>...>) {
+        static_assert(sizeof...(ps) >= 2);
+        // TODO
+        // maybe recursive
+    };
+
 }
+
+#undef COMB
 
 #endif // _GAT_COMBINATORS_HPP_
