@@ -25,7 +25,7 @@ namespace gat {
     using parser = result<ResultType>(*)(std::string_view) noexcept;
 
     template<auto p>
-    using result_type_t = decltype(p({}).result);
+    using result_type_t = decltype(p({}).value);
 
     template<auto p>
     using result_t = result<result_type_t<p>>;
