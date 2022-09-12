@@ -50,6 +50,14 @@ constexpr void combinators() noexcept {
     static_assert(!exact<3, gat::chars::one>(""));
     static_assert(exact<3, gat::chars::one>("abc"));
     static_assert(exact<3, gat::chars::one>("abcde"));
+    static_assert(left<gat::chars::digit, gat::chars::word>("1a"));
+    static_assert(left<gat::chars::digit, gat::chars::word>("1a").value == '1');
+    static_assert(!left<gat::chars::digit, gat::chars::word>("aa"));
+    static_assert(!left<gat::chars::digit, gat::chars::word>("a1"));
+    static_assert(right<gat::chars::digit, gat::chars::word>("1a"));
+    static_assert(right<gat::chars::digit, gat::chars::word>("1a").value == 'a');
+    static_assert(!right<gat::chars::digit, gat::chars::word>("aa"));
+    static_assert(!right<gat::chars::digit, gat::chars::word>("a1"));
 }
 
 int main() {

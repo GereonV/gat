@@ -18,7 +18,6 @@ namespace gat::combinators {
     //    left<Parser a><Parser    b   > = Parser a
     //   right<Parser a><Parser    b   > = Parser b
     //   ahead<Parser a><Parser    b   > = Parser a
-    // sentinel<Parser a>Parser    b   > = Parser a
     // between<Int><Int><Parser    a   > = Parser [a]
 
     template<auto p, auto... ps>
@@ -84,6 +83,25 @@ namespace gat::combinators {
             res.remaining = r.remaining;
         }
         return res;
+    };
+
+    template<auto l, auto r>
+    COMB(left, result_type_t<l>) {
+        auto res = l(sv);
+        if(!res)
+            return {};
+        auto res2 = r(res.remaining);
+        if(!res2)
+            return {};
+        return {res2.remaining, std::move(res.value)};
+    };
+
+    template<auto l, auto r>
+    COMB(right, result_type_t<r>) {
+        auto res = l(sv);
+        if(!res)
+            return {};
+        return r(res.remaining);
     };
 
 }
