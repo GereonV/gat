@@ -37,11 +37,15 @@ constexpr void combinators() noexcept {
     static_assert(optional<gat::chars::one>("x"));
     static_assert(sequence<gat::chars::one>("x"));
     static_assert(sequence<gat::chars::one, gat::chars::one>("xy"));
+    static_assert(min<0, gat::chars::one>(""));
     static_assert(min<0, gat::chars::one>("").value.empty());
     static_assert(!min<1, gat::chars::one>(""));
-    static_assert(min<1, gat::chars::one>("abc").value.size());
+    static_assert(min<1, gat::chars::one>("abc"));
+    static_assert(min<1, gat::chars::one>("abc").value.size() == 3);
     static_assert(!min<3, gat::chars::one>(""));
+    static_assert(min<3, gat::chars::one>("abc"));
     static_assert(min<3, gat::chars::one>("abc").value.size() == 3);
+    static_assert(min<3, gat::chars::one>("abcde"));
     static_assert(min<3, gat::chars::one>("abcde").value.size() == 5);
     static_assert(!exact<3, gat::chars::one>(""));
     static_assert(exact<3, gat::chars::one>("abc"));
