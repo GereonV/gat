@@ -9,8 +9,6 @@
 
 namespace gat::combinators {
 
-    //              many<Parser    a   > = Parser [a] # always
-    //              some<Parser    a   > = Parser [a]
     //            choice<Parser... a   > = Parser a
     //          optional<Parser    a   > = Parser a?  # always
     //          sequence<Parser    a...> = Parser a...
@@ -22,47 +20,6 @@ namespace gat::combinators {
     //   ahead<Parser a><Parser    b   > = Parser a
     // sentinel<Parser a>Parser    b   > = Parser a
     // between<Int><Int><Parser    a   > = Parser [a]
-
-    template<std::size_t N, auto p>
-    COMB(min, std::vector<result_type_t<p>>) {
-        std::vector<result_type_t<p>> res;
-        for(;;) {
-            auto r = p(sv);
-            if(!r) {
-                if(res.size() < N)
-                    return {};
-                return {sv, std::move(res)};
-            }
-            res.push_back(std::move(r.value));
-            sv = r.remaining;
-        }
-    };
-
-    template<auto p>
-    COMB(many, std::vector<result_type_t<p>>) {
-        std::vector<result_type_t<p>> res;
-        for(;;) {
-            auto r = p(sv);
-            if(!r)
-                return {sv, std::move(res)};
-            res.push_back(std::move(r.value));
-            sv = r.remaining;
-        }
-    };
-
-    template<auto p>
-    COMB(some, std::vector<result_type_t<p>>) {
-        auto r = p(sv);
-        if(!r)
-            return {};
-        std::vector<result_type_t<p>> res{r};
-        for(;;) {
-            r = p(sv = r.remaining);
-            if(!r)
-                return {sv, std::move(res)};
-            res.push_back(std::move(r.value));
-        }
-    };
 
     template<auto p, auto... ps>
     COMB(choice, result_type_t<p>) {
@@ -97,6 +54,21 @@ namespace gat::combinators {
                 return {res2.remaining, {std::move(res.value), std::move(res2.value)}};
             }
         }.template operator()<ps...>();
+    };
+
+    template<std::size_t N, auto p>
+    COMB(min, std::vector<result_type_t<p>>) {
+        std::vector<result_type_t<p>> res;
+        for(;;) {
+            auto r = p(sv);
+            if(!r) {
+                if(res.size() < N)
+                    return {};
+                return {sv, std::move(res)};
+            }
+            res.push_back(std::move(r.value));
+            sv = r.remaining;
+        }
     };
 
 }
