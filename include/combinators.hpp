@@ -71,6 +71,21 @@ namespace gat::combinators {
         }
     };
 
+    template<std::size_t N, auto p>
+    COMB(exact, result_type_t<p>[N]) {
+        result<result_type_t<p>[N]> res;
+        res.error = false;
+        res.remaining = sv;
+        for(std::size_t i{}; i < N; ++i) {
+            auto r = p(res.remaining);
+            if(!r)
+                return {};
+            res.value[i] = std::move(r.value);
+            res.remaining = r.remaining;
+        }
+        return res;
+    };
+
 }
 
 #undef COMB
