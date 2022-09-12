@@ -43,6 +43,17 @@ namespace gat {
         char value[N];
     };
 
+    template<typename T, typename... Tail>
+    struct tuple {
+        T value;
+        tuple<Tail...> tail;
+    };
+
+    template<typename T>
+    struct tuple<T> {
+        T value;
+    };
+
 }
 
 #endif // _GAT_GAT_HPP_

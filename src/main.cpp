@@ -39,6 +39,8 @@ constexpr void combinators() noexcept {
     static_assert(choice<gat::chars::one, gat::chars::end>(""));
     static_assert(optional<gat::chars::one>(""));
     static_assert(optional<gat::chars::one>("x"));
+    static_assert(sequence<gat::chars::one>("x"));
+    static_assert(sequence<gat::chars::one, gat::chars::one>("xy"));
 }
 
 int main() {

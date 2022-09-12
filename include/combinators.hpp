@@ -2,7 +2,6 @@
 #define _GAT_COMBINATORS_HPP_
 
 #include <optional>
-#include <tuple>
 #include <vector>
 #include "gat.hpp"
 
@@ -21,6 +20,7 @@ namespace gat::combinators {
     //    left<Parser a><Parser    b   > = Parser a
     //   right<Parser a><Parser    b   > = Parser b
     //   ahead<Parser a><Parser    b   > = Parser a
+    // sentinel<Parser a>Parser    b   > = Parser a
     // between<Int><Int><Parser    a   > = Parser [a]
 
     template<auto p>
@@ -66,28 +66,22 @@ namespace gat::combinators {
         return {res.remaining, std::move(res.value)};
     };
 
-    template<std::size_t I, typename T>
-    struct tuple_leaf {
-        T value;
-    };
-
-    template<std::size_t I, typename... T>
-    struct tuple_impl;
-
-    template<std::size_t I>
-    struct tuple_impl<I>{};
-
-    template<std::size_t I, typename Head, typename... Tail>
-    struct tuple_impl<I, Head, Tail...> : tuple_leaf<I, Head>, tuple_impl<I + 1, Tail...> {};
-
-    template<typename... Types>
-    using tuple = tuple_impl<0, Types...>;
-
     template<auto... ps>
-    COMB(sequence, std::tuple<result_type_t<ps>...>) {
-        static_assert(sizeof...(ps) >= 2);
-        // TODO
-        // maybe recursive
+    COMB(sequence, tuple<result_type_t<ps>...>) {
+        static_assert(sizeof...(ps));
+        return [&sv]<auto p, auto... tail>() -> decltype(sequence<ps...>({})) {
+            auto res = p(sv);
+            if(!res)
+                return {};
+            if constexpr(sizeof...(ps) == 1) {
+                return {res.remaining, {std::move(res.value)}};
+            } else {
+                auto res2 = sequence<tail...>(res.remaining);
+                if(!res2)
+                    return {};
+                return {res2.remaining, {std::move(res.value), std::move(res2.value)}};
+            }
+        }.template operator()<ps...>();
     };
 
 }
