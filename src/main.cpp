@@ -31,6 +31,9 @@ constexpr void chars() noexcept {
 
 constexpr void combinators() noexcept {
     using namespace gat::combinators;
+    static_assert(min<3, gat::chars::one>("").value.empty());
+    static_assert(min<3, gat::chars::one>("abc").value.size() == 3);
+    static_assert(min<3, gat::chars::one>("abcde").value.size() == 5);
     static_assert(many<gat::chars::one>("").value.empty());
     static_assert(many<gat::chars::one>("abc").value.size() == 3);
     static_assert(!some<gat::chars::one>(""));

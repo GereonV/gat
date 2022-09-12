@@ -23,6 +23,21 @@ namespace gat::combinators {
     // sentinel<Parser a>Parser    b   > = Parser a
     // between<Int><Int><Parser    a   > = Parser [a]
 
+    template<std::size_t N, auto p>
+    COMB(min, std::vector<result_type_t<p>>) {
+        std::vector<result_type_t<p>> res;
+        for(;;) {
+            auto r = p(sv);
+            if(!r) {
+                if(res.size() < N)
+                    return {};
+                return {sv, std::move(res)};
+            }
+            res.push_back(std::move(r.value));
+            sv = r.remaining;
+        }
+    };
+
     template<auto p>
     COMB(many, std::vector<result_type_t<p>>) {
         std::vector<result_type_t<p>> res;
