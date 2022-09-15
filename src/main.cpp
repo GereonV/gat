@@ -58,6 +58,14 @@ constexpr void combinators() noexcept {
     static_assert(right<gat::chars::digit, gat::chars::word>("1a").value == 'a');
     static_assert(!right<gat::chars::digit, gat::chars::word>("aa"));
     static_assert(!right<gat::chars::digit, gat::chars::word>("a1"));
+    static_assert(!both<min<0, gat::chars::word>, gat::chars::digit>("test_"));
+    static_assert(!both<min<0, gat::chars::word>, gat::chars::digit>("test\r\n$123"));
+    static_assert(both<min<0, gat::chars::word>, gat::chars::digit>("test1"));
+    static_assert(both<min<0, gat::chars::word>, gat::chars::digit>("test1").value == std::pair{std::vector{'t', 'e', 's', 't'}, '1'});
+    static_assert(both<min<0, gat::chars::word>, gat::chars::digit>("123test"));
+    static_assert(both<min<0, gat::chars::word>, gat::chars::digit>("123test").value == std::pair{std::vector<char>{}, '1'});
+    static_assert(both<min<1, gat::chars::word>, gat::chars::digit>("123test"));
+    static_assert(both<min<1, gat::chars::word>, gat::chars::digit>("123test").value == std::pair{std::vector{'1'}, '2'});
 }
 
 int main() {

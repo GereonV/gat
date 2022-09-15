@@ -2,21 +2,24 @@
 #define _GAT_COMBINATORS_HPP_
 
 #include <optional>
+#include <utility>
 #include <vector>
 #include "gat.hpp"
 
+#define COMMA ,
 #define COMB(name, type) constexpr inline parser<type> name = [](std::string_view sv) noexcept -> result<type>
 
 namespace gat::combinators {
 
     //            choice<Parser... a   > = Parser a
     //          optional<Parser    a   > = Parser a?  # always
-    //          sequence<Parser    a...> = Parser a...
+    //          sequence<Parser    a...> = Parser {a...}
     //          min<Int><Parser    a   > = Parser [a]
     //       map<a -> b><Parser    a   > = Parser b
     //      exactly<Int><Parser    a   > = Parser a[]
     //    left<Parser a><Parser    b   > = Parser a
     //   right<Parser a><Parser    b   > = Parser b
+    //    both<Parser a><Parser    b   > = Parser {a, b}
     //   ahead<Parser a><Parser    b   > = Parser a
     // between<Int><Int><Parser    a   > = Parser [a]
 
@@ -37,22 +40,19 @@ namespace gat::combinators {
         return {res.remaining, std::move(res.value)};
     };
 
-    template<auto... ps>
-    COMB(sequence, tuple<result_type_t<ps>...>) {
-        static_assert(sizeof...(ps));
-        return [&sv]<auto p, auto... tail>() -> decltype(sequence<ps...>({})) {
-            auto res = p(sv);
-            if(!res)
+    template<auto p, auto... ps>
+    COMB(sequence, tuple<result_type_t<p> COMMA result_type_t<ps>...>) {
+        auto res = p(sv);
+        if(!res)
+            return {};
+        if constexpr(sizeof...(ps)) {
+            auto res2 = sequence<ps...>(res.remaining);
+            if(!res2)
                 return {};
-            if constexpr(sizeof...(ps) == 1) {
-                return {res.remaining, {std::move(res.value)}};
-            } else {
-                auto res2 = sequence<tail...>(res.remaining);
-                if(!res2)
-                    return {};
-                return {res2.remaining, {std::move(res.value), std::move(res2.value)}};
-            }
-        }.template operator()<ps...>();
+            return {res2.remaining, {std::move(res.value), std::move(res2.value)}};
+        } else {
+            return {res.remaining, {std::move(res.value)}};
+        }
     };
 
     template<std::size_t N, auto p>
@@ -104,8 +104,37 @@ namespace gat::combinators {
         return r(res.remaining);
     };
 
+    template<auto l, auto r>
+    COMB(both, std::pair<result_type_t<l> COMMA result_type_t<r>>) {
+        auto end = sv.end();
+        for(std::size_t len{}; len <= sv.size(); ++len) {
+            auto res = l({sv.data(), len});
+            if(!res)
+                continue;
+            auto res2 = r({res.remaining.begin(), end});
+            if(res2)
+                return {res2.remaining, {std::move(res.value), std::move(res2.value)}};
+        }
+        return {};
+    };
+
+    template<auto l, auto r>
+    COMB(ahead, result_type_t<l>) {
+        auto end = sv.end();
+        for(std::size_t len{}; len <= sv.size(); ++len) {
+            auto res = l({sv, len});
+            if(!res)
+                continue;
+            auto res2 = r({res.remaining, end});
+            if(res2)
+                return res;
+        }
+        return {};
+    };
+
 }
 
 #undef COMB
+#undef COMMA
 
 #endif // _GAT_COMBINATORS_HPP_

@@ -2,6 +2,7 @@
 
 Minimal, header-only C++ 20 text-analysis tools with full `constexpr` support only relying on:
 - `std::optional`
+- `std::pair`
 - `std::string_view`
 - `std::vector`
 
