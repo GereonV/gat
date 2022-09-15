@@ -72,6 +72,8 @@ namespace gat::combinators {
     };
 
     template<std::size_t N, auto p>
+    // requires std::is_default_constructible_v<result_type_t<p>>
+    // consider between<N, N, p>
     COMB(exact, result_type_t<p>[N]) {
         result<result_type_t<p>[N]> res;
         res.error = false;
