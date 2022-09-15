@@ -66,6 +66,13 @@ constexpr void combinators() noexcept {
     static_assert(both<min<0, gat::chars::word>, gat::chars::digit>("123test").value == std::pair{std::vector<char>{}, '1'});
     static_assert(both<min<1, gat::chars::word>, gat::chars::digit>("123test"));
     static_assert(both<min<1, gat::chars::word>, gat::chars::digit>("123test").value == std::pair{std::vector{'1'}, '2'});
+    static_assert(!between<1, 3, gat::chars::letter>(""));
+    static_assert(between<1, 3, gat::chars::letter>("a_1"));
+    static_assert(between<1, 3, gat::chars::letter>("a_1").value.size() == 1);
+    static_assert(between<1, 3, gat::chars::letter>("abc"));
+    static_assert(between<1, 3, gat::chars::letter>("abc").value.size() == 3);
+    static_assert(between<1, 3, gat::chars::letter>("abcde"));
+    static_assert(between<1, 3, gat::chars::letter>("abcde").value.size() == 3);
 }
 
 int main() {

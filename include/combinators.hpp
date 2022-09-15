@@ -58,16 +58,17 @@ namespace gat::combinators {
     template<std::size_t N, auto p>
     COMB(min, std::vector<result_type_t<p>>) {
         std::vector<result_type_t<p>> res;
+        res.reserve(N);
         for(;;) {
             auto r = p(sv);
-            if(!r) {
-                if(res.size() < N)
-                    return {};
-                return {sv, std::move(res)};
-            }
+            if(!r)
+                break;
             res.push_back(std::move(r.value));
             sv = r.remaining;
         }
+        if(res.size() < N)
+            return {};
+        return {sv, std::move(res)};
     };
 
     template<std::size_t N, auto p>
@@ -130,6 +131,23 @@ namespace gat::combinators {
                 return res;
         }
         return {};
+    };
+
+    template<std::size_t Min, std::size_t Max, auto p>
+    COMB(between, std::vector<result_type_t<p>>) {
+        static_assert(Min <= Max);
+        std::vector<result_type_t<p>> res;
+        res.reserve(Min);
+        while(res.size() < Max) {
+            auto r = p(sv);
+            if(!r)
+                break;
+            res.push_back(std::move(r.value));
+            sv = r.remaining;
+        }
+        if(res.size() < Min)
+            return {};
+        return {sv, std::move(res)};
     };
 
 }
