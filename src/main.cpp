@@ -47,6 +47,9 @@ constexpr void combinators() noexcept {
     static_assert(min<3, gat::chars::one>("abc").value.size() == 3);
     static_assert(min<3, gat::chars::one>("abcde"));
     static_assert(min<3, gat::chars::one>("abcde").value.size() == 5);
+    static_assert(!map<[](char) -> char const * { return "Test"; }, gat::chars::digit>("map"));
+    static_assert(map<[](char) -> char const * { return "Test"; }, gat::chars::one>("map"));
+    static_assert(map<[](char) -> char const * { return "Test"; }, gat::chars::one>("map").value == std::string_view{"Test"});
     static_assert(!exact<3, gat::chars::one>(""));
     static_assert(exact<3, gat::chars::one>("abc"));
     static_assert(exact<3, gat::chars::one>("abcde"));

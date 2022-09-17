@@ -71,9 +71,15 @@ namespace gat::combinators {
         return {sv, std::move(res)};
     };
 
+    template<auto f, auto p>
+    COMB(map, decltype(f(result_type_t<p>{}))) {
+        auto res = p(sv);
+        if(!res)
+            return {};
+        return {res.remaining, f(res.value)};
+    };
+
     template<std::size_t N, auto p>
-    // requires std::is_default_constructible_v<result_type_t<p>>
-    // consider between<N, N, p>
     COMB(exact, result_type_t<p>[N]) {
         result<result_type_t<p>[N]> res;
         res.error = false;
