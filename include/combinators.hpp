@@ -131,10 +131,10 @@ namespace gat::combinators {
     COMB(ahead, result_type_t<l>) {
         auto end = sv.end();
         for(std::size_t len{}; len <= sv.size(); ++len) {
-            auto res = l({sv, len});
+            auto res = l({sv.data(), len});
             if(!res)
                 continue;
-            auto res2 = r({res.remaining, end});
+            auto res2 = r({res.remaining.begin(), end});
             if(res2)
                 return res;
         }
