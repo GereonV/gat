@@ -34,8 +34,6 @@ namespace gat::chars {
     //    any_of<Char[]> = [%]
     //  inv<Parser Char> = [^$]
     // range<Char, Char> = [$1-$2]
-
-    // string<Char[]> = Parser StringView
     
     template<char match>
     PARSER(exact) PARSE_ONE_IF(c == match);
@@ -74,15 +72,6 @@ namespace gat::chars {
     PARSER(word) PARSE_ONE_IF(BETWEEN('A', 'Z') || BETWEEN('a', 'z') || BETWEEN('0', '9') || c == '_');
     PARSER(dot) PARSE_ONE_IF(c != '\n' && c != '\r');
     constexpr inline auto whitespace = any_of<" \n\r\t\v\f">;
-
-    template<literal str>
-    constexpr inline parser<std::string_view> string = [](std::string_view sv) noexcept -> result<std::string_view> {
-        if(!sv.starts_with(str.value))
-            return {};
-        auto chars = sizeof(str.value) - 1;
-        sv.remove_prefix(chars);
-        return {sv, {str.value, chars}};
-    };
 
 }
 

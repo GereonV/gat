@@ -33,6 +33,7 @@ namespace gat {
     template<auto p>
     using parser_t = parser<result_type_t<p>>;
 
+    // is<Parser a> = StringView -> Bool
     template<auto p>
     constexpr bool is(std::string_view sv) noexcept { return p(sv); }
 
@@ -48,6 +49,16 @@ namespace gat {
         constexpr std::string_view view() const noexcept { return *this; }
 
         char value[N];
+    };
+
+    // string<Char[]> = Parser StringView
+    template<literal str>
+    constexpr inline parser<std::string_view> string = [](std::string_view sv) noexcept -> result<std::string_view> {
+        if(!sv.starts_with(str.value))
+            return {};
+        auto chars = sizeof(str.value) - 1;
+        sv.remove_prefix(chars);
+        return {sv, {str.value, chars}};
     };
 
     template<typename T, typename... Tail>
