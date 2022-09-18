@@ -86,12 +86,13 @@ constexpr void json() noexcept {
         constexpr json_value() noexcept : tag{} {}
         constexpr json_value(bool b) noexcept : b{b}, tag{1} {}
         constexpr json_value(int i) noexcept : i{i}, tag{2} {}
-        constexpr json_value(std::string_view s) noexcept : s{new std::string{s}}, tag{3} {}
+        constexpr json_value(std::string_view s) noexcept : tag{3} { std::construct_at(&this->s, s); }
         constexpr json_value(std::vector<json_value> a) noexcept : a{a}, tag{4} {}
         constexpr json_value(std::vector<std::pair<std::string, json_value>> o) noexcept : o{o}, tag{5} {}
-        constexpr json_value(json_value const & other) noexcept { *this = other; }
-        constexpr json_value(json_value && other) noexcept { *this = std::move(other); }
+        constexpr json_value(json_value const & other) noexcept : tag{} { *this = other; }
+        constexpr json_value(json_value && other) noexcept : tag{} { *this = std::move(other); }
         constexpr json_value & operator=(json_value const & other) noexcept {
+            this->~json_value();
             tag = other.tag;
             switch(tag) {
             case 1:
@@ -101,7 +102,7 @@ constexpr void json() noexcept {
                 i = other.i;
                 break;
             case 3:
-                s = new std::string{*other.s};
+                std::construct_at(&s, other.s);
                 break;
             case 4:
                 a = other.a;
@@ -115,6 +116,7 @@ constexpr void json() noexcept {
         constexpr json_value & operator=(json_value && other) noexcept {
             if(this == &other)
                 return *this;
+            this->~json_value();
             tag = other.tag;
             switch(tag) {
             case 1:
@@ -124,7 +126,7 @@ constexpr void json() noexcept {
                 i = other.i;
                 break;
             case 3:
-                s = other.s;
+                std::construct_at(&s, std::move(other.s));
                 other.tag = 0;
                 break;
             case 4:
@@ -141,7 +143,7 @@ constexpr void json() noexcept {
         constexpr ~json_value() {
             switch(tag) {
             case 3:
-                delete s;
+                s.~basic_string();
                 break;
             case 4:
                 a.~vector();
@@ -154,7 +156,7 @@ constexpr void json() noexcept {
         union {
             bool b;
             int i;
-            std::string * s;
+            std::string s;
             std::vector<json_value> a;
             std::vector<std::pair<std::string, json_value>> o;
         };
@@ -184,8 +186,8 @@ constexpr void json() noexcept {
     static_assert(jsonNumber("1234"));
     static_assert(jsonNumber("1234").value.i == 1234);
     static_assert(!jsonString(""));
-    static_assert(jsonString("\"test\""));
-    static_assert(*jsonString("\"test\"").value.s == "test");
+    static_assert(jsonString("\"test\" lol"));
+    static_assert(jsonString("\"test\" lol").value.s == "test");
 }
 
 int main() {
