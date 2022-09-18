@@ -76,7 +76,7 @@ namespace gat::combinators {
         auto res = p(sv);
         if(!res)
             return {};
-        return {res.remaining, f(res.value)};
+        return {res.remaining, f(std::move(res.value))};
     };
 
     template<std::size_t N, auto p>
