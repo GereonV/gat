@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "chars.hpp"
 #include "combinators.hpp"
 
@@ -91,8 +92,9 @@ constexpr void json() noexcept {
         constexpr json_value(std::vector<std::pair<std::string, json_value>> o) noexcept : o{o}, tag{5} {}
         constexpr json_value(json_value const & other) noexcept : tag{} { *this = other; }
         constexpr json_value(json_value && other) noexcept : tag{} { *this = std::move(other); }
+        constexpr ~json_value() { free(); }
         constexpr json_value & operator=(json_value const & other) noexcept {
-            this->~json_value();
+            free();
             tag = other.tag;
             switch(tag) {
             case 1:
@@ -116,7 +118,7 @@ constexpr void json() noexcept {
         constexpr json_value & operator=(json_value && other) noexcept {
             if(this == &other)
                 return *this;
-            this->~json_value();
+            free();
             tag = other.tag;
             switch(tag) {
             case 1:
@@ -140,7 +142,7 @@ constexpr void json() noexcept {
             return *this;
         }
 
-        constexpr ~json_value() {
+        constexpr void free() noexcept {
             switch(tag) {
             case 3:
                 s.~basic_string();
