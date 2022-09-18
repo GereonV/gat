@@ -14,6 +14,22 @@ namespace gat {
             : remaining{sv}, value{static_cast<R &&>(res)}, error{} {}
         constexpr result(std::string_view sv, ResultType const & res) noexcept
             : remaining{sv}, value{res}, error{} {}
+        template<typename U>
+        constexpr result(result<U> const & other) noexcept
+            : error{other.error} {
+            if(error)
+                return;
+            remaining = other.remaining;
+            value = other.value;
+        }
+        template<typename U>
+        constexpr result(result<U> && other) noexcept
+            : error{other.error} {
+            if(error)
+                return;
+            remaining = other.remaining;
+            value = std::move(other.value);
+        }
         constexpr operator bool() const noexcept { return !error; }
         std::string_view remaining;
         ResultType value;
@@ -58,7 +74,7 @@ namespace gat {
             return {};
         auto chars = sizeof(str.value) - 1;
         sv.remove_prefix(chars);
-        return {sv, {str.value, chars}};
+        return {sv, str};
     };
 
     template<typename T, typename... Tail>
