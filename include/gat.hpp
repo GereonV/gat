@@ -32,7 +32,7 @@ namespace gat {
         }
         constexpr operator bool() const noexcept { return !error; }
         std::string_view remaining;
-        ResultType value;
+        ResultType value{};
         bool error{true};
     };
 
