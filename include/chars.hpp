@@ -26,6 +26,7 @@ namespace gat::chars {
     //         uppercase = [A-Z]
     //         lowercase = [a-z]
     //            letter = [A-Za-z]
+    //             alnum = [A-Za-z0-9]
     //              word = [A-Za-z0-9_]
     //               dot = [^\n\r]
     //        whitespace = [ \n\r\t\v\f]
@@ -69,6 +70,7 @@ namespace gat::chars {
     PARSER(uppercase) PARSE_ONE_IF(BETWEEN('A', 'Z'));
     PARSER(lowercase) PARSE_ONE_IF(BETWEEN('a', 'z'));
     PARSER(letter) PARSE_ONE_IF(BETWEEN('A', 'Z') || BETWEEN('a', 'z'));
+    PARSER(alnum) PARSE_ONE_IF(BETWEEN('A', 'Z') || BETWEEN('a', 'z') || BETWEEN('0', '9'));
     PARSER(word) PARSE_ONE_IF(BETWEEN('A', 'Z') || BETWEEN('a', 'z') || BETWEEN('0', '9') || c == '_');
     PARSER(dot) PARSE_ONE_IF(c != '\n' && c != '\r');
     constexpr inline auto whitespace = any_of<" \n\r\t\v\f">;
