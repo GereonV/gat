@@ -39,13 +39,17 @@ namespace gat::args {
 			return options<Options...>{}(c);
 		}
 
-		constexpr auto operator()(std::string_view sv) const noexcept {
-			if(Option::as_long.starts_with(sv))
-				return Option::member;
-			auto ptr = Option::member; ptr = nullptr;
-			return ((!Options::as_long.starts_with(sv) ||
+		constexpr auto operator()(std::string_view sv) const {
+			auto ptr = Option::member;
+			if(!Option::as_long.starts_with(sv))
+				ptr = nullptr;
+			if constexpr(!sizeof...(Options))
+				return ptr;
+			if(((	!Options::as_long.starts_with(sv) ||
 				(!ptr && (ptr = Options::member, true))
-			) || ...) ? ptr : nullptr;
+			 ) && ...))
+				return ptr;
+			throw std::invalid_argument{std::string{"Ambiguos abbreviation: \""}.append(sv) + '"'};
 		}
 	};
 
