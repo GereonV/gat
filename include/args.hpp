@@ -54,7 +54,7 @@ namespace gat::args {
 	};
 
 	template<typename ReturnT, auto options, auto argoptions, std::size_t Extent = std::dynamic_extent>
-	constexpr std::pair<ReturnT, std::vector<std::string_view>> parse(std::span<char const * const, Extent> input) {
+	[[nodiscard]] constexpr std::pair<ReturnT, std::vector<std::string_view>> parse(std::span<char const * const, Extent> input) {
 		ReturnT res;
 		std::vector<std::string_view> args;
 		for(auto it = input.begin(), end = input.end(); it != end; ++it) {
