@@ -68,8 +68,7 @@ namespace gat {
     constexpr inline parser<std::string_view> string = [](std::string_view sv) noexcept -> result<std::string_view> {
         if(!sv.starts_with(str.value))
             return {};
-        auto chars = sizeof(str.value) - 1;
-        sv.remove_prefix(chars);
+        sv.remove_prefix(sizeof(str.value) - 1);
         return {sv, str};
     };
 
