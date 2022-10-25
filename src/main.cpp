@@ -85,34 +85,38 @@ void args() noexcept {
 	using namespace gat::args;
 	struct result {
 		bool enable{};
-		bool enable2{};
+		bool disable{};
 		std::string_view group;
 		bool operator==(result const &) const = default;
 	};
 	constexpr auto parser = parse<result, options<
 		option<result, 'e', "enable", &result::enable>,
-		option<result, '2', "enable2", &result::enable2>
+		option<result, 'd', "disable", &result::disable>
 	>{}, options<
 		basic_option<result, std::string_view, 'g', "group", &result::group>
 	>{}>;
 	constexpr char const * cla0[]{ "-" };
 	constexpr char const * cla1[]{
-		"-e2gwheel", "test"
+		"-edgwheel", "test"
 	};
 	constexpr char const * cla2[]{
-		"-g", "wheel", "-2", "-e", "test"
+		"-g", "wheel", "-d", "-e", "test"
 	};
 	constexpr char const * cla3[]{
-		"--group=wheel", "-2e", "--", "test", "test2"
+		"--group=wheel", "-de", "--", "test", "test2"
 	};
 	constexpr char const * cla4[]{
-		"-e", "--", "-2"
+		"-e", "--", "-d"
+	};
+	constexpr char const * cla5[]{
+		"--e", "--d", "--g=wheel", "-"
 	};
 	static_assert(parser({cla0}) == std::pair{result{false, false, {}}, std::vector{"-"sv}});
 	static_assert(parser({cla1}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
 	static_assert(parser({cla2}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
 	static_assert(parser({cla3}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv, "test2"sv}});
-	static_assert(parser({cla4}) == std::pair{result{true, false, {}}, std::vector{"-2"sv}});
+	static_assert(parser({cla4}) == std::pair{result{true, false, {}}, std::vector{"-d"sv}});
+	static_assert(parser({cla5}) == std::pair{result{true, true, "wheel"}, std::vector{"-"sv}});
 }
 
 int main() {
