@@ -80,76 +80,39 @@ constexpr void combinators() noexcept {
     static_assert(between<1, 3, gat::chars::letter>("abcde").value.size() == 3);
 }
 
-struct result {
-	bool enable{};
-	bool enable2{};
-	std::string_view group;
-	bool operator==(result const &) const = default;
-};
-
-class opts {
-public:
-	constexpr bool result::* operator()(char c) const noexcept {
-		switch(c) {
-		case 'e':
-			return &result::enable;
-		case '2':
-			return &result::enable2;
-		default:
-			return nullptr;
-		}
-	};
-
-	constexpr bool result::* operator()(std::string_view sv) const noexcept {
-		if(sv == "enable")
-			return &result::enable;
-		if(sv == "enable2")
-			return &result::enable2;
-		return nullptr;
-	};
-
-};
-
-class argopts {
-public:
-	constexpr std::string_view result::* operator()(char c) const noexcept {
-		switch(c) {
-		case 'g':
-			return &result::group;
-		default:
-			return nullptr;
-		}
-	};
-
-	constexpr std::string_view result::* operator()(std::string_view sv) const noexcept {
-		if(sv == "group")
-			return &result::group;
-		return nullptr;
-	};
-
-};
-
 void args() noexcept {
 	using namespace std::literals;
 	using namespace gat::args;
-	constexpr char const * const cla0[]{ "-" };
-	constexpr char const * const cla1[]{
+	struct result {
+		bool enable{};
+		bool enable2{};
+		std::string_view group;
+		bool operator==(result const &) const = default;
+	};
+	constexpr auto parser = parse<result, options<
+		option<result, 'e', "enable", &result::enable>,
+		option<result, '2', "enable2", &result::enable2>
+	>{}, options<
+		basic_option<result, std::string_view, 'g', "group", &result::group>
+	>{}>;
+	constexpr char const * cla0[]{ "-" };
+	constexpr char const * cla1[]{
 		"-e2gwheel", "test"
 	};
-	constexpr char const * const cla2[]{
+	constexpr char const * cla2[]{
 		"-g", "wheel", "-2", "-e", "test"
 	};
-	constexpr char const * const cla3[]{
+	constexpr char const * cla3[]{
 		"--group=wheel", "-2e", "--", "test", "test2"
 	};
-	constexpr char const * const cla4[]{
+	constexpr char const * cla4[]{
 		"-e", "--", "-2"
 	};
-	static_assert(parse<result, opts{}, argopts{}>(std::span{cla0}) == std::pair{result{false, false, {}}, std::vector{"-"sv}});
-	static_assert(parse<result, opts{}, argopts{}>(std::span{cla1}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
-	static_assert(parse<result, opts{}, argopts{}>(std::span{cla2}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
-	static_assert(parse<result, opts{}, argopts{}>(std::span{cla3}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv, "test2"sv}});
-	static_assert(parse<result, opts{}, argopts{}>(std::span{cla4}) == std::pair{result{true, false, {}}, std::vector{"-2"sv}});
+	static_assert(parser({cla0}) == std::pair{result{false, false, {}}, std::vector{"-"sv}});
+	static_assert(parser({cla1}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
+	static_assert(parser({cla2}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
+	static_assert(parser({cla3}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv, "test2"sv}});
+	static_assert(parser({cla4}) == std::pair{result{true, false, {}}, std::vector{"-2"sv}});
 }
 
 int main() {
