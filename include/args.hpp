@@ -10,10 +10,46 @@
 
 namespace gat::args {
 
-	template<char const s[]>
-	struct test {};
+	template<typename ReturnT, typename MemberT, char c, literal str, MemberT ReturnT::* ptr>
+	struct basic_option {
+		static constexpr auto as_short = c;
+		static constexpr std::string_view as_long{str};
+		static constexpr auto member = ptr;
+	};
 
-	template<typename ReturnT, auto options, auto argoptions, std::size_t Extent> // = std::dynamic_extent>
+	template<typename ReturnT, char c, literal str, bool ReturnT::* ptr>
+	using option = basic_option<ReturnT, bool, c, str, ptr>;
+
+	template<typename ReturnT, char c, literal str, std::string_view ReturnT::* ptr>
+	using argoption = basic_option<ReturnT, std::string_view, c, str, ptr>;
+
+	template<typename... Options>
+	class options {
+	public:
+		constexpr auto operator()(char) const noexcept { return nullptr; }
+		constexpr auto operator()(std::string_view) const noexcept { return nullptr; }
+	};
+
+	template<typename Option, typename... Options>
+	class options<Option, Options...> {
+	public:
+		constexpr decltype(Option::member) operator()(char c) const noexcept {
+			if(Option::as_short == c)
+				return Option::member;
+			return options<Options...>{}(c);
+		}
+
+		constexpr auto operator()(std::string_view sv) const noexcept {
+			if(Option::as_long.starts_with(sv))
+				return Option::member;
+			auto ptr = Option::member; ptr = nullptr;
+			return ((!Options::as_long.starts_with(sv) ||
+				(!ptr && (ptr = Options::member, true))
+			) || ...) ? ptr : nullptr;
+		}
+	};
+
+	template<typename ReturnT, auto options, auto argoptions, std::size_t Extent = std::dynamic_extent>
 	constexpr std::pair<ReturnT, std::vector<std::string_view>> parse(std::span<char const * const, Extent> input) {
 		ReturnT res;
 		std::vector<std::string_view> args;
