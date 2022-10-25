@@ -5,13 +5,16 @@
 
 #include <span>
 #include <stdexcept>
-#include "chars.hpp"
-#include "combinators.hpp"
+#include <vector>
+#include "gat.hpp"
 
 namespace gat::args {
 
+	template<char const s[]>
+	struct test {};
+
 	template<typename ReturnT, auto options, auto argoptions, std::size_t Extent> // = std::dynamic_extent>
-	constexpr std::pair<ReturnT, std::vector<std::string_view>> parse_arguments(std::span<char const * const, Extent> input) {
+	constexpr std::pair<ReturnT, std::vector<std::string_view>> parse(std::span<char const * const, Extent> input) {
 		ReturnT res;
 		std::vector<std::string_view> args;
 		for(auto it = input.begin(), end = input.end(); it != end; ++it) {

@@ -145,11 +145,11 @@ void args() noexcept {
 	constexpr char const * const cla4[]{
 		"-e", "--", "-2"
 	};
-	static_assert(parse_arguments<result, opts{}, argopts{}>(std::span{cla0}) == std::pair{result{false, false, {}}, std::vector{"-"sv}});
-	static_assert(parse_arguments<result, opts{}, argopts{}>(std::span{cla1}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
-	static_assert(parse_arguments<result, opts{}, argopts{}>(std::span{cla2}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
-	static_assert(parse_arguments<result, opts{}, argopts{}>(std::span{cla3}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv, "test2"sv}});
-	static_assert(parse_arguments<result, opts{}, argopts{}>(std::span{cla4}) == std::pair{result{true, false, {}}, std::vector{"-2"sv}});
+	static_assert(parse<result, opts{}, argopts{}>(std::span{cla0}) == std::pair{result{false, false, {}}, std::vector{"-"sv}});
+	static_assert(parse<result, opts{}, argopts{}>(std::span{cla1}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
+	static_assert(parse<result, opts{}, argopts{}>(std::span{cla2}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv}});
+	static_assert(parse<result, opts{}, argopts{}>(std::span{cla3}) == std::pair{result{true, true, "wheel"}, std::vector{"test"sv, "test2"sv}});
+	static_assert(parse<result, opts{}, argopts{}>(std::span{cla4}) == std::pair{result{true, false, {}}, std::vector{"-2"sv}});
 }
 
 int main() {
