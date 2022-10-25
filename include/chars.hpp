@@ -1,7 +1,7 @@
 #ifndef _GAT_CHARS_HPP_
 #define _GAT_CHARS_HPP_
 
-#include "gat.hpp"
+#include "parse.hpp"
 
 #define PARSER(name) constexpr inline parser<char> name = [](std::string_view sv) noexcept -> result<char>
 #define BETWEEN(low, high) (low <= c && c <= high)
