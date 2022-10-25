@@ -49,9 +49,9 @@ namespace gat {
     template<auto p>
     using parser_t = parser<result_type_t<p>>;
 
-    template<decltype(sizeof(char)) N>
+    template<std::size_t N>
     struct literal {
-        constexpr literal(char const (&str)[N]) noexcept {
+        consteval literal(char const (&str)[N]) noexcept {
             for(auto i = N; i--;)
                 value[i] = str[i];
         }
