@@ -49,10 +49,6 @@ namespace gat {
     template<auto p>
     using parser_t = parser<result_type_t<p>>;
 
-    // is<Parser a> = StringView -> Bool
-    template<auto p>
-    constexpr bool is(std::string_view sv) noexcept { return p(sv); }
-
     template<decltype(sizeof(char)) N>
     struct literal {
         constexpr literal(char const (&str)[N]) noexcept {
