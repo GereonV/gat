@@ -20,13 +20,18 @@ namespace gat::algo {
 	template<typename T> struct ref_less_struct<T &&> { using type = T; };
 	template<typename T> using ref_less = typename ref_less_struct<T>::type; // std::remove_reference_t
 
-	template<typename It, auto Deleter = [](It const &) {}>
+	inline constexpr auto noop_on = [](auto const &) noexcept {};
+
+	template<typename It, auto Deleter = noop_on>
 	struct algorithm_buffer {
-		constexpr algorithm_buffer(auto const & it) : begin{it} {}
+		constexpr algorithm_buffer(It const & it) : begin{it} {}
 		template<typename T> constexpr algorithm_buffer(T && it) : begin{static_cast<T &&>(it)} {}
 		constexpr ~algorithm_buffer() { Deleter(begin); }
 		It begin;
 	};
+
+	template<typename T>
+	algorithm_buffer(T *) -> algorithm_buffer<T *>;
 
 	// Wagner-Fischer
 	// [row.begin; row.begin + rhs.size()) must be valid range
