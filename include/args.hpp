@@ -101,7 +101,7 @@ namespace gat::args {
 	};
 
 	template<typename ReturnT, template<typename> typename ReturnPolicy, auto options, auto argoptions, std::size_t Extent = std::dynamic_extent>
-	[[nodiscard]] constexpr ReturnPolicy<ReturnT>::type parse(std::span<char const * const, Extent> input) {
+	[[nodiscard]] constexpr typename ReturnPolicy<ReturnT>::type parse(std::span<char const * const, Extent> input) {
 		ReturnPolicy<ReturnT> res;
 		for(auto it = input.begin(), end = input.end(); it != end; ++it) {
 			std::string_view sv{*it};
