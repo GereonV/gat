@@ -53,34 +53,80 @@ namespace gat::args {
 		}
 	};
 
-	template<typename ReturnT, auto options, auto argoptions, std::size_t Extent = std::dynamic_extent>
-	[[nodiscard]] constexpr std::pair<ReturnT, std::vector<std::string_view>> parse(std::span<char const * const, Extent> input) {
-		ReturnT res;
+	template<typename ReturnT>
+	class all {
+	public:
+	using type = std::pair<ReturnT, std::vector<std::string_view>>;
+		constexpr void add_arg(std::string_view sv) noexcept { args.emplace_back(sv); }
+		constexpr void set_opt(bool ReturnT::* ptr) noexcept { options.*ptr = true; }
+		constexpr void set_opt(std::string_view ReturnT::* ptr, std::string_view sv) noexcept { options.*ptr = sv; }
+		constexpr type result() noexcept { return {options, std::move(args)}; }
 		std::vector<std::string_view> args;
+		ReturnT options;
+	};
+
+	template<typename ReturnT>
+	class opts {
+	public:
+	using type = ReturnT;
+		constexpr void add_arg(std::string_view) noexcept {}
+		constexpr void set_opt(bool ReturnT::* ptr) noexcept { options.*ptr = true; }
+		constexpr void set_opt(std::string_view ReturnT::* ptr, std::string_view sv) noexcept { options.*ptr = sv; }
+		constexpr type result() noexcept { return options; }
+		ReturnT options;
+	};
+
+	template<typename ReturnT>
+	class strict {
+	public:
+	using type = std::pair<ReturnT, std::vector<std::string_view>>;
+		constexpr void add_arg(std::string_view sv) noexcept { args.emplace_back(sv); }
+		constexpr void set_opt(bool ReturnT::* ptr) {
+			if(_args)
+				throw std::invalid_argument{"Option after non-option argument"};
+			options.*ptr = true;
+		}
+
+		constexpr void set_opt(std::string_view ReturnT::* ptr, std::string_view sv) noexcept {
+			options.*ptr = sv;
+			_args = true;
+		}
+
+		constexpr type result() noexcept { return {options, std::move(args)}; }
+	public:
+		std::vector<std::string_view> args;
+		ReturnT options;
+	private:
+		bool _args{};
+	};
+
+	template<typename ReturnT, template<typename> typename ReturnPolicy, auto options, auto argoptions, std::size_t Extent = std::dynamic_extent>
+	[[nodiscard]] constexpr ReturnPolicy<ReturnT>::type parse(std::span<char const * const, Extent> input) {
+		ReturnPolicy<ReturnT> res;
 		for(auto it = input.begin(), end = input.end(); it != end; ++it) {
 			std::string_view sv{*it};
 			if(sv.size() == 1 || sv[0] != '-') {
-				args.emplace_back(sv);
+				res.add_arg(sv);
 				continue;
 			}
 			if(sv[1] == '-') {
 				sv.remove_prefix(2);
 				if(sv.empty()) {
 					while(++it != end)
-						args.emplace_back(*it);
+						res.add_arg(*it);
 					break;
 				}
 				auto eq = sv.find('=');
 				if(eq == sv.npos) {
 					if(auto opt = options(sv); opt) {
-						res.*opt = true;
+						res.set_opt(opt);
 						continue;
 					}
 				} else {
 					auto value = sv.substr(eq + 1);
 					sv = sv.substr(0, eq);
 					if(auto opt = argoptions(sv); opt) {
-						res.*opt = value;
+						res.set_opt(opt, value);
 						continue;
 					}
 				}
@@ -89,17 +135,17 @@ namespace gat::args {
 			for(std::size_t i{1}; i < sv.size(); ++i) {
 				auto c = sv[i];
 				if(auto opt = options(c); opt) {
-					res.*opt = true;
+					res.set_opt(opt);
 					continue;
 				}
 				auto opt = argoptions(c);
 				if(!opt)
 					throw std::invalid_argument{std::string{"Unknown option: '"} + c + '\''};
-				res.*opt = sv.size() == ++i ? *++it : sv.substr(i);
+				res.set_opt(opt, sv.size() == ++i ? *++it : sv.substr(i));
 				break;
 			}
 		}
-		return {std::move(res), std::move(args)};
+		return res.result();
 	}
 
 }

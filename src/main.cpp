@@ -89,7 +89,7 @@ void args() noexcept {
 		std::string_view group;
 		bool operator==(result const &) const = default;
 	};
-	constexpr auto parser = parse<result, options<
+	constexpr auto parser = parse<result, all, options<
 		option<result, 'd', "disable", &result::disable>,
 		option<result, 'D', "dispose", &result::dispose>
 	>{}, options<
