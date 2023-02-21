@@ -80,7 +80,7 @@ namespace gat::combinators {
 	};
 
 	template<std::size_t N, auto p>
-	COMB(exact, result_type_t<p>[N]) {
+	COMB(exactly, result_type_t<p>[N]) {
 		result<result_type_t<p>[N]> res;
 		res.error = false;
 		res.remaining = sv;
